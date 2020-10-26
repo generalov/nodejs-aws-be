@@ -1,0 +1,17 @@
+{
+  "name": "nodejs-aws-be",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "devDependencies": {
+    "serverless": "^2.8.0"
+  },
+  "scripts": {
+    "deploy": "yarn workspace product-service sls deploy",
+    "task3-local-getProductsList": "yarn workspace product-service sls invoke local -f getProductsList",
+    "task3-local-getProductsById": "yarn workspace product-service sls invoke local -f getProductsById -d '{\"pathParameters\": {\"productId\": \"7567ec4b-b10c-48c5-9345-fc73c48a80a0\"}}'"
+  }
+}
