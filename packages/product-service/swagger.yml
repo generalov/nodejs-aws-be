@@ -1,0 +1,80 @@
+openapi: '3.0.2'
+info:
+  title: API Task 3
+  description: Products service API
+  version: '1.0'
+servers:
+  - url: https://mzvml8midc.execute-api.us-east-2.amazonaws.com/dev
+components:
+  schemas:
+    Error:
+      type: string
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        count:
+          type: number
+
+    ArrayOfProducts:
+      type: array
+      items:
+        $ref:  "#/components/schemas/Product"
+
+  responses:
+    NotFound:
+      description: The specified resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: The request is bad
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+paths:
+  /products:
+    get:
+      summary: Get all products
+      responses:
+        '200':
+          description: A list of products
+          content:
+            application/json:
+              schema:
+                $ref:  "#/components/schemas/ArrayOfProducts"
+
+  /products/{productId}:
+    get:
+      summary: Get product by id
+      parameters:
+        - in: path
+          name: productId
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: product id
+      responses:
+        '200':
+          description: A product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
