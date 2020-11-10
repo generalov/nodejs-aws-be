@@ -1,32 +1,28 @@
 import * as db from "../db";
+import httpError from "http-errors";
+import middy from "@middy/core";
+import middyHttpCors from "@middy/http-cors";
+import middyErrorHandler from "middy-error-handler";
+import middyRequestLogger from "middy-request-logger";
 
-export async function handler(event) {
-  const headers = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Credentials": true,
+export const handler = middy(getProductById).use([
+  middyErrorHandler(),
+  middyRequestLogger(),
+  middyHttpCors(),
+]);
+
+export async function getProductById(event) {
+  if (!event.pathParameters?.productId) {
+    throw new httpError.BadRequest("Bad Request");
+  }
+
+  const { productId } = event.pathParameters;
+  const product = await db.products.getById(productId);
+  if (!product) {
+    throw new httpError.BadRequest("Product not found");
+  }
+  return {
+    statusCode: 200,
+    body: JSON.stringify(product),
   };
-
-  if (!event?.pathParameters?.productId) {
-    return {
-      statusCode: 400,
-      headers,
-      body: JSON.stringify("Bad Request"),
-    };
-  }
-
-  try {
-    const { productId } = event.pathParameters;
-    const product = await db.products.getById(productId);
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify(product),
-    };
-  } catch (e) {
-    return {
-      statusCode: 404,
-      headers,
-      body: JSON.stringify(e.message),
-    };
-  }
 }

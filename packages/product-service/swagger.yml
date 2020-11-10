@@ -1,17 +1,28 @@
 openapi: '3.0.2'
 info:
-  title: API Task 3
+  title: NodeJS AWS API
   description: Products service API
-  version: '1.0'
+  version: '1.4'
 servers:
   - url: https://mzvml8midc.execute-api.us-east-2.amazonaws.com/dev
+  - url: http://localhost:3000/dev
 components:
   schemas:
     Error:
-      type: string
-
-    Product:
       type: object
+      required:
+        - data
+      properties:
+        data:
+          type: string
+
+    ProductSchema:
+      type: object
+      required:
+        - title
+        - description
+        - price
+        - count
       properties:
         id:
           type: string
@@ -22,13 +33,15 @@ components:
           type: string
         price:
           type: number
+          minimum: 0
         count:
           type: number
+          minimum: 0
 
     ArrayOfProducts:
       type: array
       items:
-        $ref:  "#/components/schemas/Product"
+        $ref:  "#/components/schemas/ProductSchema"
 
   responses:
     NotFound:
@@ -43,11 +56,18 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+    ServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
 
 paths:
   /products:
     get:
       summary: Get all products
+      operationId: getProductsList
       responses:
         '200':
           description: A list of products
@@ -55,10 +75,35 @@ paths:
             application/json:
               schema:
                 $ref:  "#/components/schemas/ArrayOfProducts"
+    post:
+      summary: Create a new Product
+      operationId: createProduct
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductSchema'
+            example:
+              title: Product
+              description: Product description
+              price: 2.32
+              count: 8
+      responses:
+        '200':
+          description: Product was created
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
 
   /products/{productId}:
     get:
       summary: Get product by id
+      operationId: getProductsById
       parameters:
         - in: path
           name: productId
@@ -73,7 +118,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Product'
+                $ref: '#/components/schemas/ProductSchema'
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':

@@ -7,9 +7,15 @@ frameworkVersion: "2"
 
 # Add the serverless-webpack plugin
 plugins:
+  - serverless-dotenv-plugin
   - serverless-webpack
+  - serverless-offline
 
 custom:
+  dotenv:
+    basePath: ../../
+    required:
+      file: true
   webpack:
     packager: "yarn"
 
@@ -30,6 +36,17 @@ functions:
           path: products
           cors: true
 
+  createProduct:
+    handler: src/handlers/createProduct.handler
+    events:
+      - http:
+          method: post
+          path: products
+          cors: true
+          request:
+            schema:
+              application/json: ${file(swagger.yml):components.schemas.ProductSchema}
+
   getProductsById:
     handler: src/handlers/getProductsById.handler
     events:
@@ -41,3 +58,29 @@ functions:
             parameters:
               paths:
                 productId: true
+
+resources:
+  Resources:
+    # API Gateway validation does not include CORS headers (https://github.com/serverless/serverless/issues/3896)
+    GatewayResponseDefault400:
+      Type: "AWS::ApiGateway::GatewayResponse"
+      Properties:
+        RestApiId:
+          Ref: "ApiGatewayRestApi"
+        ResponseType: DEFAULT_4XX
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseTemplates:
+          application/json: "{ \"data\": $context.error.messageString }"
+    GatewayResponseDefault500:
+      Type: "AWS::ApiGateway::GatewayResponse"
+      Properties:
+        RestApiId:
+          Ref: "ApiGatewayRestApi"
+        ResponseType: DEFAULT_5XX
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseTemplates:
+          application/json: "{ \"data\": $context.error.messageString }"

@@ -14,9 +14,18 @@
     "babel-polyfill": "^6.23.0",
     "babel-preset-env": "^1.6.0",
     "jest": "^26.6.1",
+    "serverless-dotenv-plugin": "^3.1.0",
+    "serverless-offline": "^6.8.0",
     "serverless-webpack": "^5.3.1",
     "webpack": "^4.35.2"
   },
   "author": "The serverless webpack authors (https://github.com/elastic-coders/serverless-webpack)",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@middy/core": "^1.4.0",
+    "@middy/http-cors": "^1.4.0",
+    "@middy/http-json-body-parser": "^1.4.0",
+    "http-errors": "^1.8.0",
+    "pg": "^8.4.2"
+  }
 }
