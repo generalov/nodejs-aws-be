@@ -13,7 +13,6 @@ plugins:
 
 custom:
   dotenv:
-    basePath: ../../
     required:
       file: true
   webpack:
