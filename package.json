@@ -11,9 +11,10 @@
     "serverless": "^2.8.0"
   },
   "scripts": {
-    "start": "yarn workspace product-service sls offline",
-    "deploy": "yarn workspace product-service sls deploy"
     "tf": "yarn workspace terraform run terraform",
-    "deploy:tf": "yarn tf apply -auto-approve"
+    "deploy:tf": "yarn tf apply -auto-approve",
+    "start": "yarn workspace product-service sls offline",
+    "deploy": "yarn workspace product-service sls deploy",
+    "create:sls": "yarn sls create --template-path=$(pwd)/scripts/template-aws-nodejs"
   }
 }

@@ -1,0 +1,37 @@
+service:
+  name: template-aws-nodejs
+# app and org for use with dashboard.serverless.com
+#app: your-app-name
+#org: your-org-name
+frameworkVersion: '2'
+
+# Add the serverless-webpack plugin
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-webpack
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  #  stage: dev
+  region: us-east-2
+  apiGateWay:
+    shouldStartNameWithService: true
+
+custom:
+  dotenv:
+    basePath: ../../
+    required:
+      file: true
+  webpack:
+    packager: "yarn"
+
+functions:
+  first:
+    handler: src/handlers/first.handler
+    events:
+      - http:
+          method: get
+          path: first
+          cors: true
