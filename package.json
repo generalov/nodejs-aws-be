@@ -4,7 +4,8 @@
   "license": "MIT",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "terraform"
   ],
   "devDependencies": {
     "serverless": "^2.8.0"
@@ -12,5 +13,7 @@
   "scripts": {
     "start": "yarn workspace product-service sls offline",
     "deploy": "yarn workspace product-service sls deploy"
+    "tf": "yarn workspace terraform run terraform",
+    "deploy:tf": "yarn tf apply -auto-approve"
   }
 }
