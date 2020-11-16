@@ -12,7 +12,7 @@
     "serverless": "^2.8.0"
   },
   "scripts": {
-    "tf": "yarn workspace terraform run terraform",
+    "tf": "yarn workspace terraform run --silent terraform",
     "start:product-service": "yarn workspace product-service sls offline",
     "start:import-service": "yarn workspace import-service sls offline",
     "deploy:tf": "yarn tf apply -auto-approve",
