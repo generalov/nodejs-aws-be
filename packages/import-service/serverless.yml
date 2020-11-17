@@ -1,0 +1,62 @@
+service:
+  name: import-service
+# app and org for use with dashboard.serverless.com
+#app: your-app-name
+#org: your-org-name
+frameworkVersion: '2'
+
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-webpack
+  - serverless-offline
+
+custom:
+  dotenv:
+    required:
+      file: true
+  serverless-offline:
+    httpPort: 4000
+    lambdaPort: 4002
+    websocketPort: 4001
+  webpack:
+    packager: "yarn"
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: us-east-2
+  #  stage: dev
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action: "s3:ListBucket"
+      Resource:
+        - "arn:aws:s3:::${env:IMPORT_S3_BUCKET}"
+    - Effect: "Allow"
+      Action: "s3:*"
+      Resource:
+        - "arn:aws:s3:::${env:IMPORT_S3_BUCKET}/*"
+
+functions:
+  importProductsFile:
+    handler: src/handlers/importProductsFile.handler
+    events:
+      - http:
+          method: get
+          path: import
+          cors: true
+          request:
+            parameters:
+              querystrings:
+                name: true
+                type: true
+
+  importFileParser:
+    handler: src/handlers/importFileParser.handler
+    events:
+      - s3:
+          bucket: "${env:IMPORT_S3_BUCKET}"
+          event: "s3:ObjectCreated:*"
+          rules:
+            - prefix: "${env:IMPORT_S3_UPLOAD_PREFIX}"
+          existing: true

@@ -1,6 +1,6 @@
 {
   "name": "nodejs-aws-be",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "license": "MIT",
   "private": true,
   "workspaces": [
@@ -8,13 +8,16 @@
     "terraform"
   ],
   "devDependencies": {
+    "prettier": "^2.1.2",
     "serverless": "^2.8.0"
   },
   "scripts": {
     "tf": "yarn workspace terraform run terraform",
+    "start:product-service": "yarn workspace product-service sls offline",
+    "start:import-service": "yarn workspace import-service sls offline",
     "deploy:tf": "yarn tf apply -auto-approve",
-    "start": "yarn workspace product-service sls offline",
-    "deploy": "yarn workspace product-service sls deploy",
+    "deploy:product-service": "yarn workspace product-service sls deploy",
+    "deploy:import-service": "yarn workspace import-service sls deploy",
     "create:sls": "yarn sls create --template-path=$(pwd)/scripts/template-aws-nodejs"
   }
 }
