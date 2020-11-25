@@ -1,5 +1,5 @@
 {
-  "name": "middy-error-handler",
+  "name": "middy-http-error-handler",
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT"

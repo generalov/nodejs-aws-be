@@ -1,7 +1,7 @@
 import * as db from "../db";
 import middy from "@middy/core";
 import middyHttpCors from "@middy/http-cors";
-import middyErrorHandler from "middy-error-handler";
+import middyErrorHandler from "middy-http-error-handler";
 import middyRequestLogger from "middy-request-logger";
 
 export const handler = middy(getProductsList).use([

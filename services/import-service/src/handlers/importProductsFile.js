@@ -2,7 +2,7 @@ import AWS from "aws-sdk";
 import httpError from "http-errors";
 import middy from "@middy/core";
 import middyHttpCors from "@middy/http-cors";
-import middyErrorHandler from "middy-error-handler";
+import middyErrorHandler from "middy-http-error-handler";
 import middyRequestLogger from "middy-request-logger";
 
 const {
