@@ -1,7 +1,9 @@
-module.exports = () => {
+import logger from "logger";
+
+export default () => {
   return {
     before: (handler, next) => {
-      console.log(JSON.stringify(handler.event));
+      logger.log(JSON.stringify(handler.event));
       return next();
     },
   };

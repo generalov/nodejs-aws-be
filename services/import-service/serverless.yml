@@ -26,6 +26,8 @@ provider:
   runtime: nodejs12.x
   region: us-east-2
   #  stage: dev
+  environment:
+    CATALOG_ITEMS_QUEUE_SQS_URL: "${cf:product-service-${self:provider.stage}.SQSQueueUrl}"
 
   iamRoleStatements:
     - Effect: "Allow"
@@ -36,6 +38,10 @@ provider:
       Action: "s3:*"
       Resource:
         - "arn:aws:s3:::${env:IMPORT_S3_BUCKET}/*"
+    - Effect: Allow
+      Action: "sqs:*"
+      Resource:
+        - "${cf:product-service-${self:provider.stage}.SQSQueueArn}"
 
 functions:
   importProductsFile:

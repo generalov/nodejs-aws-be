@@ -24,7 +24,7 @@ test("should renturn Product not found when the product does not exist", async (
   const resp = await handler(event);
 
   expect(resp.statusCode).toBe(400);
-  expect(resp.body).toBe('"Product not found"');
+  expect(resp.body).toBe(JSON.stringify({ data: "Product not found" }));
 });
 
 test("should renturn Bad Request when path parameter is empty", async () => {
@@ -32,5 +32,5 @@ test("should renturn Bad Request when path parameter is empty", async () => {
   const resp = await handler(event);
 
   expect(resp.statusCode).toBe(400);
-  expect(resp.body).toBe('"Bad Request"');
+  expect(resp.body).toBe(JSON.stringify({ data: "Bad Request" }));
 });

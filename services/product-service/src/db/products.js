@@ -12,62 +12,84 @@ const DB_OPTIONS = {
   connectionTimeoutMillis: 5000,
 };
 
-export async function findAll() {
+async function execute(fn) {
   const client = new Client(DB_OPTIONS);
   await client.connect();
-
   try {
-    const { rows: productList } = await client.query(`
-      SELECT p.id, s.count, p.price, p.title, p.description
-      FROM products p INNER JOIN stocks s ON (p.id = s.product_id)
-      ORDER BY p.title
-    `);
-    return productList;
+    return await fn(client);
   } finally {
     client.end();
   }
+}
+
+function usingTransaction(fn) {
+  return async (client) => {
+    let res;
+    try {
+      await client.query(`BEGIN`);
+      res = await fn(client);
+      await client.query(`COMMIT`);
+    } catch (err) {
+      await client.query(`ROLLBACK`);
+      throw err;
+    }
+    return res;
+  };
+}
+
+export async function findAll() {
+  return execute(async (client) => {
+    const { rows: productList } = await client.query(
+      `SELECT p.id, s.count, p.price, p.title, p.description
+                 FROM products p
+                          INNER JOIN stocks s ON (p.id = s.product_id)
+                 ORDER BY p.title`
+    );
+    return productList;
+  });
 }
 
 export async function getById(productId) {
-  const client = new Client(DB_OPTIONS);
-  await client.connect();
-
-  try {
+  return execute(async (client) => {
     const { rows: productList } = await client.query(
       `SELECT p.id, s.count, p.price, p.title, p.description
-      FROM products p INNER JOIN stocks s ON (p.id = s.product_id)
-      WHERE p.id = $1`,
+                 FROM products p
+                          INNER JOIN stocks s ON (p.id = s.product_id)
+                 WHERE p.id = $1`,
       [productId]
     );
     return productList.length === 1 ? productList[0] : null;
-  } finally {
-    client.end();
-  }
+  });
 }
 
 export async function create({ title, description, price, count }) {
-  const client = new Client(DB_OPTIONS);
+  const rows = [{ title, description, price, count }];
+  return (await bulkCreate(rows))[0];
+}
 
-  await client.connect();
-  try {
-    await client.query("BEGIN");
-    try {
+export async function bulkCreate(rows) {
+  const titleCol = rows.map(({ title }) => title);
+  const descriptionCol = rows.map(({ description }) => description);
+  const priceCol = rows.map(({ price }) => price);
+  const countCol = rows.map(({ count }) => count);
+
+  return execute(
+    usingTransaction(async (client) => {
       const result = await client.query(
-        `INSERT INTO products (title, description, price) VALUES ($1, $2, $3) RETURNING id`,
-        [title, description, price]
+        `INSERT INTO products (title, description, price)
+                     SELECT *
+                     FROM UNNEST($1::text[], $2::text[], $3::decimal[])
+                     RETURNING id`,
+        [titleCol, descriptionCol, priceCol]
       );
-      const productId = result.rows[0].id;
+      const productIdCol = result.rows.map(({ id }) => id);
       await client.query(
-        `INSERT INTO stocks (product_id, count) VALUES ($1, $2)`,
-        [productId, count]
+        `INSERT INTO stocks (product_id, count)
+                     SELECT *
+                     FROM UNNEST($1::uuid[], $2::int[])`,
+        [productIdCol, countCol]
       );
-      await client.query("COMMIT");
-      return productId;
-    } catch (err) {
-      await client.query("ROLLBACK");
-      throw err;
-    }
-  } finally {
-    client.end();
-  }
+      return productIdCol;
+    })
+  );
 }

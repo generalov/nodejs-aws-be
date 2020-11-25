@@ -1,4 +1,5 @@
 import AWS from "aws-sdk";
+import logger from "logger";
 import csvParser from "csv-parser";
 import { Transform, pipeline as _pipeline } from "stream";
 import { promisify } from "util";
@@ -18,6 +19,7 @@ export const handler = middy(importFileParser).use([middyRequestLogger()]);
 
 export async function importFileParser(event, context, callback) {
   const s3 = new AWS.S3({ region: IMPORT_S3_REGION });
+  const sqs = new AWS.SQS();
 
   const tasks = event.Records.map(async (record) => {
     const srcKey = record.s3.object.key;
@@ -34,7 +36,19 @@ export async function importFileParser(event, context, callback) {
     await pipeline(
       uploadedObject.createReadStream(),
       csvParser(),
-      streamTap(console.log)
+      streamTap(async ({ data }) => {
+        const message = {
+          QueueUrl: process.env.CATALOG_ITEMS_QUEUE_SQS_URL,
+          MessageBody: JSON.stringify(data),
+        };
+        try {
+          await sqs.sendMessage(message).promise();
+          logger.log(`Send message for: ${JSON.stringify(data)}`);
+        } catch (err) {
+          logger.log(`Fail sending message for: ${JSON.stringify(data)}`);
+          logger.log(JSON.stringify(err.message));
+        }
+      })
     );
 
     // move
@@ -55,7 +69,7 @@ export async function importFileParser(event, context, callback) {
 
   const results = await Promise.allSettled(tasks);
   const success = results.filter(({ status }) => status === "fulfilled");
-  console.log(
+  logger.log(
     `${success.length} of ${results.length} files was copied successfully`
   );
 }
@@ -63,9 +77,9 @@ export async function importFileParser(event, context, callback) {
 export function streamTap(fn) {
   return new Transform({
     objectMode: true,
-    transform: (data, encoding, done) => {
+    transform: async (data, encoding, done) => {
       try {
-        fn({ data, encoding });
+        await fn({ data, encoding });
       } catch (err) {
         done(err);
         return;

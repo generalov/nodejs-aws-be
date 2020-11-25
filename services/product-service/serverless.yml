@@ -23,8 +23,21 @@ provider:
   runtime: nodejs12.x
   #  stage: dev
   region: us-east-2
-  apiGateWay:
-    shouldStartNameWithService: true
+
+  environment:
+    SNS_ARN:
+      Ref: SNSTopic
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action: "sqs:*"
+      Resource:
+        - Fn::GetAtt: [ SQSQueue, Arn ]
+
+    - Effect: Allow
+      Action: "sns:*"
+      Resource:
+        Ref: SNSTopic
 
 functions:
   getProductsList:
@@ -58,8 +71,56 @@ functions:
               paths:
                 productId: true
 
+  catalogBatchProcess:
+    handler: src/handlers/catalogBatchProcess.handler
+    events:
+      - sqs:
+          batchSize: 5
+          arn: { Fn::GetAtt: [ SQSQueue, Arn ] }
+
 resources:
+  Outputs:
+    SQSQueueUrl:
+      Value:
+        Ref: SQSQueue
+
+    SQSQueueArn:
+      Value:
+        Fn::GetAtt: [ SQSQueue, Arn ]
+
   Resources:
+    SQSQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: catalogItemsQueue
+
+    SNSTopic:
+      Type: "AWS::SNS::Topic"
+      Properties:
+        TopicName: "createProductTopic"
+
+    SNSSubscriptionProductImportSuccess:
+      Type: "AWS::SNS::Subscription"
+      Properties:
+        Endpoint: "${env:PRODUCT_IMPORT_SUCCESS_EMAIL}"
+        Protocol: "email"
+        TopicArn:
+          Ref: "SNSTopic"
+        FilterPolicy: {
+            status: ["success"]
+        }
+
+    SNSSubscriptionProductImportFail:
+      Type: "AWS::SNS::Subscription"
+      Properties:
+        Endpoint: "${env:PRODUCT_IMPORT_FAIL_EMAIL}"
+        Protocol: "email"
+        TopicArn:
+          Ref: "SNSTopic"
+        FilterPolicy: {
+          status: ["fail"]
+        }
+
     # API Gateway validation does not include CORS headers (https://github.com/serverless/serverless/issues/3896)
     GatewayResponseDefault400:
       Type: "AWS::ApiGateway::GatewayResponse"
