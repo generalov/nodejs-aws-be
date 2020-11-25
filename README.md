@@ -18,4 +18,4 @@ yarn tf init
 
 `yarn deploy`: deploy backend
 
-`yarn create:sls -p packages/new-service -n new-service`: create a new service
+`yarn create:sls -p services/new-service -n new-service`: create a new service
