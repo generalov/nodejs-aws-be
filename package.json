@@ -19,6 +19,7 @@
     "deploy:tf": "yarn tf apply -auto-approve",
     "deploy:product-service": "yarn workspace product-service sls deploy",
     "deploy:import-service": "yarn workspace import-service sls deploy",
+    "deploy:authorization-service": "yarn workspace authorization-service sls deploy",
     "create:sls": "yarn sls create --template-path=$(pwd)/scripts/template-aws-nodejs"
   }
 }

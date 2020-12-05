@@ -46,6 +46,10 @@ functions:
           method: get
           path: import
           cors: true
+          authorizer:
+            type: TOKEN
+            authorizerId:
+              Ref: BasicAuthorizer
           request:
             parameters:
               querystrings:
@@ -61,3 +65,63 @@ functions:
           rules:
             - prefix: "${env:IMPORT_S3_UPLOAD_PREFIX}"
           existing: true
+
+resources:
+  Resources:
+    BasicAuthorizer:
+      Type: AWS::ApiGateway::Authorizer
+      Properties:
+        Name: BasicAuthorizer
+        Type: TOKEN
+        AuthorizerResultTtlInSeconds: 300
+        IdentitySource: method.request.header.Authorization
+        ProviderARNs:
+          - Fn::ImportValue: BasicAuthorizerArn
+        RestApiId:
+          Ref: ApiGatewayRestApi
+
+    # API Gateway validation does not include CORS headers (https://github.com/serverless/serverless/issues/3896)
+    GatewayResponseDefault400:
+      Type: "AWS::ApiGateway::GatewayResponse"
+      Properties:
+        RestApiId:
+          Ref: "ApiGatewayRestApi"
+        ResponseType: DEFAULT_4XX
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseTemplates:
+          application/json: "{ \"data\": $context.error.messageString }"
+    GatewayResponseAccessDeied:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+        ResponseType: ACCESS_DENIED
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseTemplates:
+          application/json: "{ \"message\": $context.error.messageString }"
+    GatewayResponseUnauthorized:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+        ResponseType: UNAUTHORIZED
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseTemplates:
+          application/json: "{ \"message\": $context.error.messageString }"
+    GatewayResponseDefault500:
+      Type: "AWS::ApiGateway::GatewayResponse"
+      Properties:
+        RestApiId:
+          Ref: "ApiGatewayRestApi"
+        ResponseType: DEFAULT_5XX
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseTemplates:
+          application/json: "{ \"data\": $context.error.messageString }"
