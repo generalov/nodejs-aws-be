@@ -1,49 +1,41 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import * as https from 'https';
+import { Request, Response } from 'express';
 import * as dotenv from 'dotenv-flow';
 import * as proxy from 'http-proxy-middleware';
 
 dotenv.config();
 
-const { BFF_PORT: PORT } = process.env;
-
-const routesFromEnv = ({ prefix = 'PROXY', env = process.env } = {}) => {
-  const re = new RegExp(`^${prefix.toLowerCase()}_(.*)_([^_]+)$`);
-  const routeGroups = Object.entries(env)
-    .filter(([key]) => key.startsWith(prefix))
-    .reduce((res, [key, value]) => {
-      const ms = key.toLowerCase().match(re);
-      if (!ms) return res;
-      const [, name, spec] = ms;
-      (res[name] || (res[name] = {}))[spec] = value;
-      return res;
-    }, {});
-  return Object.values(routeGroups);
-};
-
-const proxyMiddleware = ({ path, url }) => {
-  const options: proxy.Options = {
-    target: url,
-    pathRewrite: {
-      [path]: '',
-    },
-    changeOrigin: true,
-    onProxyReq: (proxyReq, req, res) => {
-      console.log(
-        `[bff-service] Proxying ${req.method} request originally made to '${req.originalUrl}'...`,
-      );
-    },
+const bffMiddleware = () => {
+  return (req: Request, res: Response, next: () => void) => {
+    const recipientServiceName = req.url.split('/')[1];
+    const recipientURL: string | undefined = process.env[recipientServiceName];
+    if (!recipientURL) {
+      res.status(502).send('Cannot process request');
+    } else {
+      const proxyMiddleware = proxy.createProxyMiddleware({
+        target: recipientURL,
+        pathRewrite: {
+          [`/${recipientServiceName}`]: '',
+        },
+        changeOrigin: true,
+        preserveHeaderKeyCase: true,
+        onProxyReq: (proxyReq, req, res) => {
+          console.log(
+            `[bff-service] Proxying ${req.method} request originally made to '${req.originalUrl}'...`,
+          );
+        },
+      });
+      proxyMiddleware(req, res, next);
+    }
   };
-  return proxy.createProxyMiddleware(options);
 };
 
 async function bootstrap() {
+  const { PORT } = process.env;
   const app = await NestFactory.create(AppModule, { bodyParser: false });
-  const proxyRoutes = routesFromEnv();
-  proxyRoutes.forEach(({ path, url }) => {
-    app.use(proxyMiddleware({ path, url }));
-  });
+
+  app.use(bffMiddleware());
 
   console.debug(`[bff-service] App listening at http://localhost:${PORT}`);
   await app.listen(PORT);
