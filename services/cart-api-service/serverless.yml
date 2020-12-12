@@ -1,0 +1,22 @@
+service: cart-api-service
+frameworkVersion: "2"
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: us-east-2
+
+functions:
+  cart-api-proxy:
+    handler: absurd.hanlder
+    events:
+      - http:
+          method: any
+          path: /{proxy+}
+          integration: http_proxy
+          request:
+            uri: http://generalov-cart-api-devel.us-east-2.elasticbeanstalk.com/api/{proxy}
+            parameters:
+              paths:
+                proxy: true
+
