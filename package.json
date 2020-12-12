@@ -9,6 +9,7 @@
     "terraform"
   ],
   "devDependencies": {
+    "@nestjs/cli": "^7.5.4",
     "prettier": "^2.1.2",
     "serverless": "^2.8.0"
   },
