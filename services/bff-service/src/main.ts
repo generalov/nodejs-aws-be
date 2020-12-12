@@ -32,7 +32,7 @@ const bffMiddleware = () => {
 };
 
 async function bootstrap() {
-  const { PORT } = process.env;
+  const { PORT = 80 } = process.env;
   const app = await NestFactory.create(AppModule, { bodyParser: false });
 
   app.use(bffMiddleware());
