@@ -70,7 +70,11 @@ export const cacheResponseMiddleware = ({
   expire = undefined,
 }: CacheResponseMiddlewareOptions = {}) => {
   const expireTime =
-    typeof expire === 'string' ? parseInt(expire, 10) : undefined;
+    typeof expire === 'number'
+      ? expire
+      : typeof expire === 'string'
+      ? parseInt(expire, 10)
+      : undefined;
 
   return (req: Request, res: Response, next: NextFunction) => {
     if (req.method !== 'GET') {
