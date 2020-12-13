@@ -1,5 +1,5 @@
 {
-  "name": "cart-api-proxy",
+  "name": "bff-proxy",
   "version": "1.0.0",
   "description": "Serverless webpack example using ecma script",
   "author": "The serverless webpack authors (https://github.com/elastic-coders/serverless-webpack)",

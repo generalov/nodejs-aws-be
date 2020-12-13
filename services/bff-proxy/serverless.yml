@@ -1,10 +1,10 @@
-service: cart-api-proxy
+service: bff-proxy
 frameworkVersion: "2"
 
 provider:
   name: aws
   runtime: nodejs12.x
-  region: us-east-2
+  region: us-east-1
 
 functions:
   cart-api-proxy:
@@ -15,7 +15,7 @@ functions:
           path: /{proxy+}
           integration: http_proxy
           request:
-            uri: http://generalov-cart-api-devel.us-east-2.elasticbeanstalk.com/api/{proxy}
+            uri: http://generalov-bff-api-devel.us-east-1.elasticbeanstalk.com/{proxy}
             parameters:
               paths:
                 proxy: true
