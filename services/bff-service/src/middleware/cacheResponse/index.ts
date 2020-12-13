@@ -58,11 +58,20 @@ const getVaryHeaders = (req: Request) => {
     }, {});
 };
 
+export type CacheResponseMiddlewareOptions = {
+  cache?: MemCache;
+  isCacheable?: (res: Response) => boolean;
+  expire?: number | string;
+};
+
 export const cacheResponseMiddleware = ({
   cache = new MemCache(),
   isCacheable = isCacheableResponse,
   expire = undefined,
-} = {}) => {
+}: CacheResponseMiddlewareOptions = {}) => {
+  const expireTime =
+    typeof expire === 'string' ? parseInt(expire, 10) : undefined;
+
   return (req: Request, res: Response, next: NextFunction) => {
     const cacheKey = getCacheKey(req);
     const [exists, cachedResponse] = cache.get(cacheKey);
@@ -82,7 +91,7 @@ export const cacheResponseMiddleware = ({
         }
         cache.set(cacheKey, {
           value: createCachedResponse(body, req, res),
-          ...(expire && { expireAt: expire + cache.now() }),
+          ...(expire && { expireAt: expireTime + cache.now() }),
         });
       };
 
