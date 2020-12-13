@@ -41,7 +41,7 @@ const sendCachedResponse = (
 
 const getCacheKey = (req: Request) => {
   const varyHeaders = getVaryHeaders(req);
-  return `${req.url}|${JSON.stringify(varyHeaders)}`;
+  return `${req.method}|${req.url}|${JSON.stringify(varyHeaders)}`;
 };
 
 const getVaryHeaders = (req: Request) => {
@@ -73,6 +73,9 @@ export const cacheResponseMiddleware = ({
     typeof expire === 'string' ? parseInt(expire, 10) : undefined;
 
   return (req: Request, res: Response, next: NextFunction) => {
+    if (req.method !== 'GET') {
+      return next();
+    }
     const cacheKey = getCacheKey(req);
     const [exists, cachedResponse] = cache.get(cacheKey);
 
