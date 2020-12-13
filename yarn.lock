@@ -6343,6 +6343,11 @@ hash.js@^1.0.0, hash.js@^1.0.3:
     inherits "^2.0.3"
     minimalistic-assert "^1.0.1"
 
+hijackresponse@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/hijackresponse/-/hijackresponse-5.0.0.tgz#03174e70e582a244034af9254c71e7d0a7a763cd"
+  integrity sha512-9ErmDCl4BdTEgLTQh36ZFP62EXPeKyDd68K/FmQoQFaV3i2QY9l/kacf9Ygw+iuSvF/qsNIkwUz6NOCIZAaqMw==
+
 hmac-drbg@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/hmac-drbg/-/hmac-drbg-1.0.1.tgz#d2745701025a6c775a6c545793ed502fc0c649a1"
