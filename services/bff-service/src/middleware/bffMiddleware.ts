@@ -15,7 +15,7 @@ export const bffMiddleware = (
       res.status(502).send('Cannot process request');
     };
 
-    const recipientServiceName: Optional<string> = req.url.split('/')[1];
+    const recipientServiceName: Optional<string> = req.url.split(/[/?]/)[1];
     if (!recipientServiceName) {
       return cannotProcessRequest();
     }

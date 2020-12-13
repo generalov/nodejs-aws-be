@@ -94,7 +94,7 @@ export const cacheResponseMiddleware = ({
         }
         cache.set(cacheKey, {
           value: createCachedResponse(body, req, res),
-          ...(expire && { expireAt: expireTime + cache.now() }),
+          ...(expireTime && { expireAt: expireTime + cache.now() }),
         });
       };
 
