@@ -6,6 +6,10 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "eb:init": "eb init generalov-bff-api",
+    "eb:create": "eb create devel-bff -p node.js-12 --cname generalov-bff-api-devel --single -r us-east-1",
+    "eb:deploy": "eb deploy -r us-east-1 devel-bff",
+    "deploy": "npm run build && npm run eb:deploy",
     "prebuild": "rimraf dist",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
