@@ -8,6 +8,13 @@ import * as hijackResponse from 'hijackresponse';
 
 const pipeline = promisify(_pipeline);
 
+type Optional<T> = T | undefined;
+
+export type CacheResponseMiddlewareOptions = {
+  cache?: MemCache;
+  expire?: number | string;
+};
+
 type CachedResponse = {
   statusCode: number;
   headers: OutgoingHttpHeaders;
@@ -58,23 +65,28 @@ const getVaryHeaders = (req: Request) => {
     }, {});
 };
 
-export type CacheResponseMiddlewareOptions = {
-  cache?: MemCache;
-  isCacheable?: (res: Response) => boolean;
-  expire?: number | string;
+const parseExpireTime = (
+  expire: Optional<number | string>,
+): Optional<number> => {
+  switch (typeof expire) {
+    case 'number':
+      return expire;
+    case 'undefined':
+      return expire;
+    case 'string':
+      return parseInt(expire, 10);
+    default:
+      throw new Error(
+        `Expire argument should be a number or string, but ${typeof expire} given`,
+      );
+  }
 };
 
 export const cacheResponseMiddleware = ({
   cache = new MemCache(),
-  isCacheable = isCacheableResponse,
   expire = undefined,
 }: CacheResponseMiddlewareOptions = {}) => {
-  const expireTime =
-    typeof expire === 'number'
-      ? expire
-      : typeof expire === 'string'
-      ? parseInt(expire, 10)
-      : undefined;
+  const expireTime = parseExpireTime(expire);
 
   return (req: Request, res: Response, next: NextFunction) => {
     if (req.method !== 'GET') {
@@ -93,7 +105,7 @@ export const cacheResponseMiddleware = ({
         if (err) {
           return;
         }
-        if (!isCacheable(res)) {
+        if (!isCacheableResponse(res)) {
           return;
         }
         cache.set(cacheKey, {
