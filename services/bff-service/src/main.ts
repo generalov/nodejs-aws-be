@@ -4,7 +4,9 @@ import { bffMiddleware } from './middleware/bffMiddleware';
 import { cacheResponseMiddleware } from './middleware/cacheResponse';
 import * as dotenv from 'dotenv-flow';
 
-dotenv.config();
+dotenv.config({
+  default_node_env: 'development',
+});
 
 async function bootstrap() {
   const { PORT = 8080, PRODUCT_CACHE_EXPIRE = 2 * 60 * 1000 } = process.env;
