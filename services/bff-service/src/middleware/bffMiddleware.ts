@@ -7,9 +7,7 @@ export type BffMiddlewareOptions = {
   rules: { [key: string]: string };
 };
 
-export const bffMiddleware = (
-  { rules }: BffMiddlewareOptions = { rules: process.env },
-) => {
+export const bffMiddleware = (options: BffMiddlewareOptions) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const cannotProcessRequest = () => {
       res.status(502).send('Cannot process request');
@@ -20,7 +18,8 @@ export const bffMiddleware = (
       return cannotProcessRequest();
     }
 
-    const recipientURL: Optional<string> = rules[recipientServiceName];
+    console.log(options.rules);
+    const recipientURL: Optional<string> = options.rules[recipientServiceName];
     if (!recipientURL) {
       return cannotProcessRequest();
     }
