@@ -27,6 +27,7 @@ const isCacheableResponse = (res: Response) => {
 
 const createCachedResponse = (body: Buffer, req: Request, res: Response) => {
   const headers = Object.entries(res.getHeaders())
+    // TODO: filter some headers
     .filter(([key]) => key)
     .reduce((res, [key, value]) => {
       res[key] = value;
