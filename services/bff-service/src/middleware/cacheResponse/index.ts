@@ -92,6 +92,7 @@ export const cacheResponseMiddleware = ({
     if (req.method !== 'GET') {
       return next();
     }
+
     const cacheKey = getCacheKey(req);
     const [exists, cachedResponse] = cache.get(cacheKey);
 
@@ -108,8 +109,7 @@ export const cacheResponseMiddleware = ({
         if (!isCacheableResponse(res)) {
           return;
         }
-        cache.set(cacheKey, {
-          value: createCachedResponse(body, req, res),
+        cache.set(cacheKey, createCachedResponse(body, req, res), {
           ...(expireTime && { expireAt: expireTime + cache.now() }),
         });
       };

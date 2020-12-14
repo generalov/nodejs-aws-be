@@ -7,21 +7,20 @@ export type BffMiddlewareOptions = {
   rules: { [key: string]: string };
 };
 
+const cannotProcessRequest = (res: Response) => {
+  res.status(502).send('Cannot process request');
+};
+
 export const bffMiddleware = (options: BffMiddlewareOptions) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    const cannotProcessRequest = () => {
-      res.status(502).send('Cannot process request');
-    };
-
     const recipientServiceName: Optional<string> = req.url.split(/[/?]/)[1];
     if (!recipientServiceName) {
-      return cannotProcessRequest();
+      return cannotProcessRequest(res);
     }
 
-    console.log(options.rules);
     const recipientURL: Optional<string> = options.rules[recipientServiceName];
     if (!recipientURL) {
-      return cannotProcessRequest();
+      return cannotProcessRequest(res);
     }
 
     const proxyMiddleware = proxy.createProxyMiddleware({

@@ -2,11 +2,14 @@ type Result<T> = [boolean, T];
 const Ok = <T>(value: T): Result<T> => [true, value];
 const Fail = <E>(err: E): Result<E> => [false, err];
 
-type Cacheable = any;
-
-export type CacheData = {
-  value: Cacheable;
+export type Cacheable = any;
+export type CacheOptions = {
   expireAt?: number;
+};
+
+type CacheData = {
+  value: Cacheable;
+  options: CacheOptions;
 };
 
 export class MemCache {
@@ -24,8 +27,8 @@ export class MemCache {
     return Ok(value);
   }
 
-  set(key: string, item: CacheData) {
-    this.store.set(key, item);
+  set(key: string, value: Cacheable, options: CacheOptions = {}) {
+    this.store.set(key, { value, options });
   }
 
   delete(key) {
@@ -35,8 +38,8 @@ export class MemCache {
   invalidate() {
     const now = this.now();
     for (const key of this.store.keys()) {
-      const { expireAt } = this.store.get(key);
-      if (expireAt && expireAt < now) {
+      const { options } = this.store.get(key);
+      if (options.expireAt && options.expireAt < now) {
         this.delete(key);
       }
     }

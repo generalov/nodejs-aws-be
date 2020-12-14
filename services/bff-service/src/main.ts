@@ -10,8 +10,10 @@ dotenv.config({
 
 async function bootstrap() {
   const { PORT = 8080, PRODUCT_CACHE_EXPIRE = 2 * 60 * 1000 } = process.env;
+  // disable bodyParser to allow cacheResponseMiddleware to stream requests
   const app = await NestFactory.create(AppModule, { bodyParser: false });
 
+  // Apply the caching to path /product only
   app.use(
     '/product',
     cacheResponseMiddleware({ expire: PRODUCT_CACHE_EXPIRE }),
